@@ -29,8 +29,22 @@ app.put('/:sigla', (req, res) => {
     for(let campo of campos){
         timeSelecionado[campo] = req.body[campo];
     }
-    
     res.status(200).send(timeSelecionado);
 });
+
+app.post('/', (req, res) => {
+    const novoTime = req.body;
+    tabela.push(novoTime);
+    res.status(200).send(novoTime);
+});
+    
+app.delete('/:sigla', (req, res) => {
+    const siglaInformada = req.params.sigla.toUpperCase();
+    const timeSelecionado = tabela.find((time) => time.sigla === siglaInformada);
+    const indiceTimeSelecionado = tabela.findIndex((time) => time.sigla === siglaInformada);
+    const timeRemovido = tabela.splice(indiceTimeSelecionado, 1);
+    res.status(200).send(timeRemovido);
+
+})
 
 app.listen(8080, () => console.log('Servidor Funcionando!'));
