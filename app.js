@@ -1,5 +1,6 @@
 import tabela from './tabela.js';
 import express from 'express';
+import { modeloTime, modeloAtualizacaoTime } from './validacao.js';
 
 const app = express();
 
@@ -24,8 +25,16 @@ app.get('/:sigla', (requisicao, resposta) => {
 app.put('/:sigla', (req, res) => {
     const siglaInformada = req.params.sigla.toUpperCase();
     const timeSelecionado = tabela.find((time) => time.sigla === siglaInformada);
+    if (!timeSelecionado){
+        res.status(404).send("Não existe na série A do Brasileirão um time com a sigla informada!");
+        return;
+    }
+    const { error }  = modeloAtualizacaoTime.validate(req.body);
+    if(error){
+        res.status(400).send(error);
+        return;
+    }
     const campos = Object.keys(req.body);
-
     for(let campo of campos){
         timeSelecionado[campo] = req.body[campo];
     }
@@ -34,14 +43,24 @@ app.put('/:sigla', (req, res) => {
 
 app.post('/', (req, res) => {
     const novoTime = req.body;
+    const {error} = modeloTime.validate(novoTime);
+    if (error){
+        res.status(400).send(error);
+        return;
+    }
     tabela.push(novoTime);
-    res.status(200).send(novoTime);
+    res.status(201).send(novoTime);
 });
     
 app.delete('/:sigla', (req, res) => {
     const siglaInformada = req.params.sigla.toUpperCase();
     const timeSelecionado = tabela.find((time) => time.sigla === siglaInformada);
     const indiceTimeSelecionado = tabela.findIndex((time) => time.sigla === siglaInformada);
+    if(indiceTimeSelecionado === -1 ){
+        res.status(404).send("Não existe na série A do Brasileirão um time com a sigla informada!");
+        return;
+    }
+
     const timeRemovido = tabela.splice(indiceTimeSelecionado, 1);
     res.status(200).send(timeRemovido);
 
